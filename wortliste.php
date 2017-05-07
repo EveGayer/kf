@@ -138,13 +138,20 @@ $wortliste = "В начале 1806 года Николай Ростов верн
 -- Ко мне милости прошу, вот ты с моим молодцом знаком... вместе там, вместе геройствовали... A! Василий Игнатьич... здорово старый, -- обратился он к проходившему старичку, но не успел еще договорить приветствия, как всё зашевелилось, и прибежавший лакей, с испуганным лицом, доложил: пожаловали!
 ";
 $wortliste = explode(" ", $wortliste);
+mb_regex_encoding("UTF-8");
 
-for($i = 1; $i < count($wortliste); $i++) {
-    if ($wortliste[$i] == ",") {
-        unset($wortliste[$i]);
-    }
+for($i = 0; $i < count($wortliste); $i++) {
+    $pattern = '[\-\,\.]';
     echo "<pre>";
-    echo "Wort: $i  " . mb_strtoupper($wortliste[$i]) . "  ";
+    var_dump(
+        mb_strtoupper(
+            mb_ereg_replace(
+                $pattern,
+                "",
+                $wortliste[$i]
+            )
+        )
+    );
     echo "</pre>";
 }
 
