@@ -137,23 +137,48 @@ $wortliste = "В начале 1806 года Николай Ростов верн
 Граф Илья Андреич Ростов, озабоченно, торопливо похаживал в своих мягких сапогах из столовой в гостиную, поспешно и совершенно-одинаково здороваясь с важными и неважными лицами, которых он всех знал, и изредка отыскивая глазами своего стройного молодца-сына, радостно останавливал на нем свой взгляд и подмигивал ему. Молодой Ростов стоял у окна с Долоховым, с которым он недавно познакомился, и знакомством которого он дорожил. Старый граф подошел к ним и пожал руку Долохову.
 -- Ко мне милости прошу, вот ты с моим молодцом знаком... вместе там, вместе геройствовали... A! Василий Игнатьич... здорово старый, -- обратился он к проходившему старичку, но не успел еще договорить приветствия, как всё зашевелилось, и прибежавший лакей, с испуганным лицом, доложил: пожаловали!
 ";
+
 $wortliste = explode(" ", $wortliste);
+
+
 mb_regex_encoding("UTF-8");
 
 for($i = 0; $i < count($wortliste); $i++) {
-    $pattern = '[\-\,\.]';
-    echo "<pre>";
-    var_dump(
-        mb_strtoupper(
-            mb_ereg_replace(
-                $pattern,
-                "",
-                $wortliste[$i]
+    $pattern = '[\-\,\.\?\!\;\'\(\)]';
+    $wortliste[$i] = 
+		mb_strtoupper(
+			 mb_ereg_replace(
+				$pattern,
+				"",
+				$wortliste[$i]
             )
-        )
-    );
-    echo "</pre>";
+        );
+		  
+		  
+	/*echo "<pre>";
+	echo "$wortliste[$i]";
+    echo "</pre>";*/
 }
+echo "<pre>";
+$collator = collator_create('ru_RU');
+$collator -> sort($wortliste);
+// print_r($wortliste);
+echo "<pre>";
+
+$resultArray = array(); 
+for($i = 0; $i < count($wortliste); $i++) {
+	//var_dump($wortliste[$i]);
+	for ($j=0; $j< count($wortliste); $j++) {
+		if ($wortliste[$i] == $wortliste[$j]){
+			$obj = (object) 
+			array(
+				'word' => $wortliste[$i]
+			);
+			array_push($resultArray, $obj);
+		};
+	};
+}
+var_dump($resultArray[40]->word);
 
 
 ?>
