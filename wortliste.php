@@ -138,47 +138,202 @@ $wortliste = "В начале 1806 года Николай Ростов верн
 -- Ко мне милости прошу, вот ты с моим молодцом знаком... вместе там, вместе геройствовали... A! Василий Игнатьич... здорово старый, -- обратился он к проходившему старичку, но не успел еще договорить приветствия, как всё зашевелилось, и прибежавший лакей, с испуганным лицом, доложил: пожаловали!
 ";
 
-$wortliste = explode(" ", $wortliste);
 
-
+/*
+ * Global configs and reuirements
+ * */
+if($wortliste == null) {
+    exit;
+}
 mb_regex_encoding("UTF-8");
 
-for($i = 0; $i < count($wortliste); $i++) {
-    $pattern = '[\-\,\.\?\!\;\'\(\)]';
-    $wortliste[$i] = 
-		mb_strtoupper(
-			 mb_ereg_replace(
-				$pattern,
-				"",
-				$wortliste[$i]
-            )
-        );
-		  
-		  
-	/*echo "<pre>";
-	echo "$wortliste[$i]";
-    echo "</pre>";*/
+function createWordlist($text) {
+    echo "DONE!\n";
+    echo "And have a nice time watching some hard work in progess. \n";
+    echo "   -wangoe\n";
+    return explode(" ", $text);
 }
-echo "<pre>";
+
+function removeSymbols($list) {
+    for($i = 0; $i < count($list); $i++) {
+        show_status($i+1, count($list));
+        $pattern = '[\-\,\.\?\!\;\'\(\)]';
+        $list[$i] =
+		    mb_strtoupper(
+			     mb_ereg_replace(
+				    $pattern,
+				    "",
+				    $list[$i]
+                )
+            );
+    }
+    return $list;
+}
+
+function mapLanguageToOjects($list) {
+    $tempList = array();
+    for($i = 0; $i < count($list); $i++) {
+        show_status($i + 1, count($list));
+        $obj = (object) // casts an array to an object
+	        array(
+                'word' => $list[$i],
+                'frequency' => 0,
+		    );
+	    array_push($tempList, $obj);
+    }
+    $list = $tempList;
+    return $list;
+}
+
+function removeSpaces($list) {
+    $listCount = count($list);
+    echo "Elemente in der Liste: " . $listCount . "\n";
+    for($i = 0; $i < count($list); $i++) {
+        show_status($i + 1, count($list));
+        if(mb_strlen($list[$i]->word) == 0) {
+             array_splice($list, $i, 1);
+        };
+    }
+    echo  "\n" . $listCount - count($list) . " Elemente wurden entfernt \n";
+    return $list;
+}
+
+function countFrequency($list) {
+    for($i = 0; $i < count($list); $i++) {
+        show_status($i + 1, count($list));
+        for($j = 0; $j < count($list); $j++) {
+            if($list[$i]->word == $list[$j]->word) {
+                $list[$i]->frequency++;
+            }
+        }
+    }
+    return $list;
+}
+
+function removeDoubles($list) {
+    $listCount = count($list);
+    echo "Elemente in der Liste: " . $listCount . "\n";
+    $tempList = array();
+    for($i = 0; $i < count($list); $i++) {
+        show_status($i + 1, count($list));
+        if($list[$i++]->word != $list[$i]->word) {
+            array_push($tempList, $list[$i]);
+        }
+    }
+    $list = $tempList;
+    echo  "\n\n" . $listCount - count($list) . " Elemente wurden entfernt \n";
+    return $list;
+}
+
+function printMetric($list) {
+    for($i = 0; $i < count($list); $i++) {
+        readline("Weiter?");
+        echo $list[$i]->word;
+        echo "\n";
+        echo $list[$i]->frequency;
+        echo "\nWord: " . $list[$i]->word . " kommt " . $list[$i]->frequency . " vor.";
+    }
+}
+
+
+readline("Die Liste Zerlegen?");
+$wortliste = createWordlist($wortliste);
+
+readline("Symbole entfernen?");
+$wortliste = removeSymbols($wortliste);
+
+readline("Sortieren?");
+// sort
 $collator = collator_create('ru_RU');
 $collator -> sort($wortliste);
-// print_r($wortliste);
-echo "<pre>";
+echo "DONE! \n";
 
-$resultArray = array(); 
-for($i = 0; $i < count($wortliste); $i++) {
-	//var_dump($wortliste[$i]);
-	for ($j=0; $j< count($wortliste); $j++) {
-		if ($wortliste[$i] == $wortliste[$j]){
-			$obj = (object) 
-			array(
-				'word' => $wortliste[$i]
-			);
-			array_push($resultArray, $obj);
-		};
-	};
+readline("Objekte erstellen?");
+$wortliste = mapLanguageToOjects($wortliste);
+
+readline("Leerzeichen entfernen?");
+$wortliste = removeSpaces($wortliste);
+
+readline("Häufigkeit Zählen?");
+$wortliste = countFrequency($wortliste);
+
+readline("Dubletten entfernen?");
+$wortliste = removeDoubles($wortliste);
+var_dump(count($wortliste));
+printMetric($wortliste);
+
+
+
+
+
+
+// USED AS PROGRESS BAR
+/**
+ * show a status bar in the console
+ *
+ * <code>
+ * for($x=1;$x<=100;$x++){
+ *
+ *     show_status($x, 100);
+ *
+ *     usleep(100000);
+ *
+ * }
+ * </code>
+ *
+ * @param   int     $done   how many items are completed
+ * @param   int     $total  how many items are to be done total
+ * @param   int     $size   optional size of the status bar
+ * @return  void
+ *
+ */
+
+function show_status($done, $total, $size=30) {
+    if($done == 0) {
+        return;
+    }
+
+    static $start_time;
+
+    // if we go over our bound, just ignore it
+    if($done > $total) return;
+
+    if(empty($start_time)) $start_time=time();
+    $now = time();
+
+    $perc=(double)($done/$total);
+
+    $bar=floor($perc*$size);
+
+    $status_bar="\r[";
+    $status_bar.=str_repeat("=", $bar);
+    if($bar<$size){
+        $status_bar.=">";
+        $status_bar.=str_repeat(" ", $size-$bar);
+    } else {
+        $status_bar.="=";
+    }
+
+    $disp=number_format($perc*100, 0);
+
+    $status_bar.="] $disp%  $done/$total";
+
+    $rate = ($now-$start_time)/$done;
+    $left = $total - $done;
+    $eta = round($rate * $left, 2);
+
+    $elapsed = $now - $start_time;
+
+    $status_bar.= " remaining: ".number_format($eta)." sec.  elapsed: ".number_format($elapsed)." sec.";
+
+    echo "$status_bar  ";
+
+    flush();
+
+    // when done, send a newline
+    if($done == $total) {
+        echo "\n";
+    }
+
 }
-var_dump($resultArray[40]->word);
-
-
 ?>
